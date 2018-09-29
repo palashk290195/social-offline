@@ -35,8 +35,8 @@ def main():
     """
     store = file.Storage('token.json')
 
-    # flow = client.flow_from_clientsecrets('credentials.json', SCOPES)
-    # creds = tools.run_flow(flow, store)
+    flow = client.flow_from_clientsecrets('credentials.json', SCOPES)
+    creds = tools.run_flow(flow, store)
      
     creds = store.get()
     if not creds or creds.invalid:
