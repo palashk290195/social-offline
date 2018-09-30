@@ -21,7 +21,7 @@ SCOPES = ('https://www.googleapis.com/auth/gmail.send ' + 'https://www.googleapi
 # The ID and range of a sample spreadsheet.
 #RESPONSE_SPREADSHEET_ID = '1cUJQKFFP-2A3Cd2RTsdHjEJ86FjCNBhkBEoa4qLQP94'
 RESPONSE_SPREADSHEET_ID = ''
-RESPONSE_RANGE_NAME = 'A:D'
+RESPONSE_RANGE_NAME = 'A:E'
 
 COMBINED_MATCHING_SPREADSHEET_ID = '1QOk2kXpiHQ3_xMwFmcoirFpVXY0RupJsoUcoP7qaqj0'
 COMBINED_MATCHING_RANGE_NAME = 'A:B'
@@ -29,22 +29,22 @@ COMBINED_MATCHING_RANGE_NAME = 'A:B'
 value_render_option = 'FORMATTED_VALUE'
 
 def main():
-    RESPONSE_SPREADSHEET_ID = sys.argv[1]
     """Shows basic usage of the Sheets API.
     Prints values from a sample spreadsheet.
     """
     store = file.Storage('token.json')
-
-    flow = client.flow_from_clientsecrets('credentials.json', SCOPES)
-    creds = tools.run_flow(flow, store)
-     
     creds = store.get()
+    #flow = client.flow_from_clientsecrets('credentials.json', SCOPES)
+    #creds = tools.run_flow(flow, store)
+     
+    #creds = store.get()
     if not creds or creds.invalid:
         flow = client.flow_from_clientsecrets('credentials.json', SCOPES)
         creds = tools.run_flow(flow, store)
     service = build('sheets', 'v4', http=creds.authorize(Http()))
 
     # Call the Sheets API
+    RESPONSE_SPREADSHEET_ID = sys.argv[1]
     response_result = service.spreadsheets().values().get(spreadsheetId=RESPONSE_SPREADSHEET_ID,
                                                 range=RESPONSE_RANGE_NAME, valueRenderOption=value_render_option).execute()
     response_values = response_result.get('values', [])
@@ -52,9 +52,9 @@ def main():
 
     if not response_values:
         print('No data found.')
-    # else:
-    #     for row in response_values:
-    #         print(row)
+    #else:
+    #    for row in response_values:
+    #        print(row)
 
     combined_matching_result = service.spreadsheets().values().get(spreadsheetId=COMBINED_MATCHING_SPREADSHEET_ID,
                                                 range=COMBINED_MATCHING_RANGE_NAME, valueRenderOption=value_render_option).execute()
@@ -119,9 +119,11 @@ def createMessage(row):
     timeSlot = row[2] # Third column
     name1 = row[3]
     name2 = row[4]
-    cc1 = "palashrajendra.kala_yif19@ashoka.edu.in," + "sahil.mahajan_yif19@ashoka.edu.in," + "manreet.khara_yif19@ashoka.edu.in," + "snigdha.budhiraja_yif19@ashoka.edu.in," + "komal.manglani_yif19@ashoka.edu.in," + "apoorva.goel_yif19@ashoka.edu.in"
+    contact1 = row[5]
+    contact2 = row[6]
+    cc1 = "palashrajendra.kala_yif19@ashoka.edu.in," + "sahil.mahajan_yif19@ashoka.edu.in," + "amruta.pagariya_yif19@ashoka.edu.in," + "komal.manglani_yif19@ashoka.edu.in," + "neelansha.trivedi_yif19@ashoka.edu.in"
     subject1 = 'Your Social Offline Match for today!'
-    message_text = "Hi Guys.\n " + "The Social Offline initiative received amazing responses yet again " + "and we have successfully matched you guys as per the time slots you guys are free in.\n" +name1 + " and " + name2 + " your slot is " + timeSlot + ".\n\n"+"So go ahead, ping the person you have been matched with." + "In case you do not have the contact details of the other person, " + "please get in touch with one of the Campus Life Committee members, " + "whose details have been mentioned below. \nThe default venue for the meeting is Outside the RH2 area " + "(for those of you who don't want to go through the hassle and formality of deciding on where to meet up)." + "For others, the complete campus is your playground! " + "Please coordinate and fix any venue you guys would love to meet at and have an amazing conversation.\n\n" + "For the sake of respecting other person's time, please do coordinate before hand with the person you are matched with " + "and communicate in case you won't be able to make it on designated time and need a change. " + "You can communicate to us or directly have a word with your partner as well." + "And last but not the least, we would love to hear from you and get your feedback about how did your meetup go." + "So please ping us on mail/call/whatsapp/catch hold of us in the campus or fill this form: https://goo.gl/forms/mxFQgs9VN8gA18vg1." +"\n\nHave a great time guys! Hopefully this would bring us one step closer to getting to know each other. Cheers! \n\nThanks and Love\n Social Offline Team\n \n Manreet Khara (7568008038)\n Snigdha Budhiraja (9818252388)\n Komal Manglani (9149238422)\n Apoorva Goel (9810056877) \n Palash Kala (9665543333) \nSahil Mahajan (9818512958)"
+    message_text = "Hi Guys.\n " + "The Social Offline initiative received amazing responses " + "and we have tried to match you guys as per the time slots you guys are free in.\n" +name1 + " and " + name2 + " your slot is " + timeSlot + ".\n"+ "Contact details are " + contact1 + " and " + contact2 + " respectively.\n\n"+"So go ahead, ping the person you have been matched with." + "In case you do not have the contact details of the other person, " + "please get in touch with the Social Offline team members, " + "whose details have been mentioned below. \nThe default venue for the meeting is Outside the RH2 area " + "(for those of you who don't want to go through the hassle and formality of deciding on where to meet up)." + "For others, the complete campus is your playground! " + "Please coordinate and fix any venue you guys would love to meet at and have an amazing conversation.\n\n" + "For the sake of respecting other person's time, please do coordinate before hand with the person you are matched with " + "and communicate in case you won't be able to make it on designated time and need a change. " + "You can communicate directly and have a word with your partner." + "And last but not the least, we would love to hear from you and get your feedback about how did your meetup go." + "So please ping us on mail/call/whatsapp/catch hold of us in the campus or fill this form: https://goo.gl/forms/mxFQgs9VN8gA18vg1." +"\n\nHave a great time guys! Hopefully this would bring us one step closer to getting to know each other. Cheers! \n\nThanks and Love\n Social Offline Team\n \n Amruta Pagariya (7588350072)\n Neelansha Trivedi (9650420000)\n Komal Manglani (9149238422) \n Palash Kala (9665543333) \nSahil Mahajan (9818512958)"
     message = MIMEText(message_text)
     message['to'] = emailAddress1 + "," + emailAddress2
     #message['from'] = "me"
@@ -143,14 +145,21 @@ def matching(responses, combinedMatchings):
     #add to responsedictionary:  email id: Set of timeslots
     responseDictionary = OrderedDict({})
     namesDictionary = {}
+    contactsDictionary = {}
     iterResponses = iter(responses)
     next(iterResponses)
     for row in iterResponses:
+        #print(row)
         email = row[1]
         name = row[2]
         timeslots = row[3]
+        if len(row) > 4:
+            contact = row[4]
+        else:
+            contact = "Contact not provided"
         responseDictionary[email] = formSet(timeslots)
         namesDictionary[email] = name
+        contactsDictionary[email] = contact
         #print(responseDictionary[email])
 
     #for each line in matching
@@ -188,7 +197,7 @@ def matching(responses, combinedMatchings):
                     if responseDictionary[email1] & responseDictionary[email2]:
                         matchingList.append([email1,email2,
                             str(next(iter(responseDictionary[email1] & responseDictionary[email2]))),
-                            namesDictionary[email1], namesDictionary[email2]])
+                            namesDictionary[email1], namesDictionary[email2], contactsDictionary[email1], contactsDictionary[email2]])
                         responseDictionary[email1] = set([])
                         responseDictionary[email2] = set([])
 
@@ -198,7 +207,7 @@ def matching(responses, combinedMatchings):
                 if (email1 not in noMatchingDictionary) or (email2 not in noMatchingDictionary[email1]):
                     if bool(responseDictionary[email1]) and bool(responseDictionary[email2]):
                         matchingList.append([email1,email2,"Please coordinate your time",
-                            namesDictionary[email1], namesDictionary[email2]])
+                            namesDictionary[email1], namesDictionary[email2], contactsDictionary[email1], contactsDictionary[email2]])
                         responseDictionary[email1] = set([])
                         responseDictionary[email2] = set([])
 
@@ -211,7 +220,7 @@ def matching(responses, combinedMatchings):
     for email in responseDictionary:
         if bool(responseDictionary[email]):
             matchingList.append([email,"","Could not find a partner",
-                namesDictionary[email], ""])
+                namesDictionary[email], "", contactsDictionary[email], ""])
 
     return matchingList
     #print(matchingList)
