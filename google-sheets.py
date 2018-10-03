@@ -143,7 +143,8 @@ def matching(responses, combinedMatchings):
     #for each line in responses
     #convert time slots in inverted commas to a set or array may be randomized
     #add to responsedictionary:  email id: Set of timeslots
-    responseDictionary = OrderedDict({})
+    #responseDictionary = OrderedDict({})
+    responseDictionary = {}
     namesDictionary = {}
     contactsDictionary = {}
     iterResponses = iter(responses)
