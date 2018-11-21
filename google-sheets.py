@@ -13,10 +13,12 @@ from email.mime.text import MIMEText
 import base64
 import urllib2
 import sys
+from random import shuffle
+import datetime
 # from google import searchGoogle
 
 # If modifying these scopes, delete the file token.json.
-SCOPES = ('https://www.googleapis.com/auth/gmail.send ' + 'https://www.googleapis.com/auth/spreadsheets')
+SCOPES = ('https://www.googleapis.com/auth/gmail.send ' + 'https://www.googleapis.com/auth/spreadsheets ' + 'https://www.googleapis.com/auth/calendar')
 
 # The ID and range of a sample spreadsheet.
 #RESPONSE_SPREADSHEET_ID = '1cUJQKFFP-2A3Cd2RTsdHjEJ86FjCNBhkBEoa4qLQP94'
@@ -72,8 +74,10 @@ def main():
         print("is 2")
         #TODO: Send emails
         gmailService = build('gmail', 'v1', http=creds.authorize(Http()))
+        calendarService = build('calendar', 'v3', http=creds.authorize(Http()))
         for row in matchingList:
-            message = createMessage(row)
+            event = addCalendarEvent(calendarService, row)
+            message = createMessage(row, event)
             sendMessage(gmailService, message)
 
         #TODO: Add to combined matching
@@ -93,6 +97,41 @@ def main():
         # sendingEmailsSheet = service.open(SENDING_EMAILS_SPREADSHEET_ID).sheet1
         # updateMatching(matchingList, sendingEmailsSheet)
 
+def addCalendarEvent(calendarService, row):
+    emailAddress1 = row[0] # First column
+    emailAddress2 = row[1] # Second column
+    timeSlot = row[2] # Third column
+    name1 = row[3]
+    name2 = row[4]
+    contact1 = row[5]
+    contact2 = row[6]
+    now = datetime.datetime.now()
+    event = {
+          'summary': 'Social Offline Meeting (' + timeSlot + ') (' + name1 + ' and ' + name2 + ')',
+          'description' : 'Contact details are ' + contact1 + ' and ' + contact2 + '. Please modify the event according to your time.',
+          'start': {
+            'date': now.strftime("%Y-%m-%d"),
+            'timeZone': 'Asia/Kolkata',
+          },
+          'end': {
+            'date': now.strftime("%Y-%m-%d"),
+            'timeZone': 'Asia/Kolkata',
+          },
+          'attendees': [
+            {'email': emailAddress1},
+            {'email': emailAddress2},
+          ],
+          'reminders': {
+            'useDefault': True,
+          },
+          'guestsCanModify' : True,
+          'sendNotifications' : True,
+        }
+
+    event = calendarService.events().insert(calendarId='primary', body=event).execute()
+    print ('Event created: %s' % (event.get('htmlLink')))
+    return event.get('htmlLink')
+
 def sendMessage(gmailService, message):
     print("sending")
     try:
@@ -102,7 +141,7 @@ def sendMessage(gmailService, message):
     except urllib2.HTTPError as error:
         print('An error occurred: %s' % error)
 
-def createMessage(row):
+def createMessage(row, event):
     """Create a message for an email.
 
     Args:
@@ -121,9 +160,9 @@ def createMessage(row):
     name2 = row[4]
     contact1 = row[5]
     contact2 = row[6]
-    cc1 = "palashrajendra.kala_yif19@ashoka.edu.in," + "sahil.mahajan_yif19@ashoka.edu.in," + "amruta.pagariya_yif19@ashoka.edu.in," + "komal.manglani_yif19@ashoka.edu.in," + "neelansha.trivedi_yif19@ashoka.edu.in"
+    cc1 = "palashrajendra.kala_yif19@ashoka.edu.in," + "sahil.mahajan_yif19@ashoka.edu.in," + "amruta.pagariya_yif19@ashoka.edu.in," + "komal.manglani_yif19@ashoka.edu.in," + "neelansha.trivedi_yif19@ashoka.edu.in," + "tanmay.parasramka_yif19@ashoka.edu.in"
     subject1 = 'Your Social Offline Match for today!'
-    message_text = "Hi Guys,\n\n" + "The Social Offline initiative received amazing responses " + "and we have tried to match you guys as per the time slots you guys are free in.\n" +name1 + " and " + name2 + " your slot is " + timeSlot + ".\n"+ "Contact details are " + contact1 + " and " + contact2 + " respectively.\n\n"+"So go ahead, ping the person you have been matched with." + "In case you do not have the contact details of the other person, " + "please get in touch with the Social Offline team members, " + "whose details have been mentioned below. \n\nThe default venue for the meeting is Outside the RH2 area " + "(for those of you who don't want to go through the hassle and formality of deciding on where to meet up)." + "For others, the complete campus is your playground! " + "Please coordinate and fix any venue you guys would love to meet at and have an amazing conversation.\n\n" + "For the sake of respecting other person's time, please do coordinate before hand with the person you are matched with " + "and communicate in case you won't be able to make it on designated time and need a change. " + "You can communicate directly and have a word with your partner." + "And last but not the least, we would love to hear from you and get your feedback about how did your meetup go." + "So please ping us on mail/call/whatsapp/catch hold of us in the campus or fill this form: https://goo.gl/forms/mxFQgs9VN8gA18vg1." +"\n\nHave a great time guys! Hopefully this would bring us one step closer to getting to know each other. Cheers! \n\nThanks and Love\nSocial Offline Team\n \nAmruta Pagariya (7588350072)\nNeelansha Trivedi (9650420000)\nKomal Manglani (9149238422) \nPalash Kala (9665543333) \nSahil Mahajan (9818512958)"
+    message_text = "Hi Guys,\n\n" + "The Social Offline initiative received amazing responses " + "and we have tried to match you guys as per the time slots you guys are free in.\n" +name1 + " and " + name2 + " your slot is " + timeSlot + ".\n"+ "Contact details are " + contact1 + " and " + contact2 + " respectively.\nPlease add the following event to your calendar with appropriate time modification: " + event +"\n\n"+"So go ahead, ping the person you have been matched with." + "In case you do not have the contact details of the other person, " + "please get in touch with the Social Offline team members, " + "whose details have been mentioned below. \n\nThe default venue for the meeting is Outside the RH2 area " + "(for those of you who don't want to go through the hassle and formality of deciding on where to meet up)." + "For others, the complete campus is your playground! " + "Please coordinate and fix any venue you guys would love to meet at and have an amazing conversation.\n\n" + "For the sake of respecting other person's time, please do coordinate before hand with the person you are matched with " + "and communicate in case you won't be able to make it on designated time and need a change. " + "You can communicate directly and have a word with your partner." + "And last but not the least, we would love to hear from you and get your feedback about how did your meetup go." + "So please ping us on mail/call/whatsapp/catch hold of us in the campus or fill this form: https://goo.gl/forms/mxFQgs9VN8gA18vg1." +"\n\nHave a great time guys! Hopefully this would bring us one step closer to getting to know each other. Cheers! \n\nThanks and Love\nSocial Offline Team\n \nAmruta Pagariya (7588350072)\nNeelansha Trivedi (9650420000)\nKomal Manglani (9149238422) \nPalash Kala (9665543333) \nSahil Mahajan (9818512958) \nTanmay Parasramka(7980625188)"
     message = MIMEText(message_text)
     message['to'] = emailAddress1 + "," + emailAddress2
     #message['from'] = "me"
@@ -190,9 +229,11 @@ def matching(responses, combinedMatchings):
     #remove both of them from response directory
 
     matchingList = []
+    responseKeysList = list(responseDictionary.keys())
+    shuffle(responseKeysList)
 
-    for email1 in responseDictionary:
-        for email2 in responseDictionary:
+    for email1 in responseKeysList:
+        for email2 in responseKeysList:
             if email1 is not email2:
                 if (email1 not in noMatchingDictionary) or (email2 not in noMatchingDictionary[email1]):
                     if responseDictionary[email1] & responseDictionary[email2]:
@@ -202,8 +243,8 @@ def matching(responses, combinedMatchings):
                         responseDictionary[email1] = set([])
                         responseDictionary[email2] = set([])
 
-    for email1 in responseDictionary:
-        for email2 in responseDictionary:
+    for email1 in responseKeysList:
+        for email2 in responseKeysList:
             if email1 is not email2:
                 if (email1 not in noMatchingDictionary) or (email2 not in noMatchingDictionary[email1]):
                     if bool(responseDictionary[email1]) and bool(responseDictionary[email2]):
@@ -218,7 +259,7 @@ def matching(responses, combinedMatchings):
 
     #print(" ")
 
-    for email in responseDictionary:
+    for email in responseKeysList:
         if bool(responseDictionary[email]):
             matchingList.append([email,"","Could not find a partner",
                 namesDictionary[email], "", contactsDictionary[email], ""])
